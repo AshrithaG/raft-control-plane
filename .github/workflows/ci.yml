@@ -1,0 +1,15 @@
+name: ci
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - run: go vet ./...
+      - run: go test ./... -race
+      # The baseline must be clean and every deliberate defect must be caught.
+      - run: go run ./cmd/simtest -seeds 10 -ticks 2000
+      - run: go run ./cmd/simtest -mutations -seeds 40 -ticks 2500
