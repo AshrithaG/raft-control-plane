@@ -50,7 +50,7 @@ the first seed and fault profile that catches each.
 | `blind-truncate` | conflict-only truncation, so a stale AppendEntries erases entries | mayhem, seed 13 | state machine safety |
 | `accept-stale-term` | the term check on AppendEntries, so a deposed leader keeps writing | chaos, seed 37 | linearizability |
 | `stale-read` | the read barrier, so a leader answers from local state | partitions, seed 32 | linearizability |
-| `commit-any-term` | the current-term rule on commit, which is figure 8 in the paper | not caught | see below |
+| `commit-any-term` | the current-term rule on commit, which is figure 8 in the paper | mayhem, seed 387, 3000 ticks | state machine safety |
 
 Baseline for the same matrix: 150 runs across six fault profiles, no invariant
 violations and every history linearizable.
@@ -58,12 +58,18 @@ violations and every history linearizable.
 Two of the five are caught only by the linearizability checker and not by any
 invariant, which is the argument for having both.
 
-Figure 8 is not caught, and the write-up will not pretend otherwise. An earlier
-run appeared to catch it at seed 201, but the same seed failed on the correct
-implementation too: that was the read-barrier bug below, not a detection.
-Random fault injection is unlikely to construct figure 8, which needs a specific
-sequence of leader changes with specific log states. Catching it needs a
-scripted scenario rather than more seeds, and that is the next thing to build.
+Figure 8 is the outlier and the numbers should be read carefully. It needs a
+specific sequence of leader changes with specific log states, so random fault
+injection finds it rarely: one detection in 400 seeded runs under `mayhem`, at
+3000 ticks rather than the default 2500, and not at all in 400 runs each of
+`chaos` and `partitions`. It is a true positive, not a flake: the same seed on
+the correct implementation is clean, while the defective one produces 20 state
+machine safety violations starting at tick 1004.
+
+An earlier run appeared to catch it at seed 201. That was not a detection: the
+same seed failed on the correct implementation too, for the read-barrier reason
+described below. A scripted figure 8 scenario would catch it reliably and is
+worth building; a seed count is a poor substitute.
 
 ```bash
 go test ./...                                  # unit tests, including checker self-tests
