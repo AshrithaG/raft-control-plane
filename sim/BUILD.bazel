@@ -1,0 +1,15 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "sim",
+    srcs = ["sim.go"],
+    importpath = "github.com/AshrithaG/raft-control-plane/sim",
+    visibility = ["//visibility:public"],
+    deps = ["//raft"],
+)
+
+go_test(
+    name = "sim_test",
+    srcs = ["sim_test.go"],
+    embed = [":sim"],
+)

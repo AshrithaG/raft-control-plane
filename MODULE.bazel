@@ -1,0 +1,10 @@
+module(name = "raft_control_plane", version = "0.1.0")
+
+bazel_dep(name = "rules_go", version = "0.63.0")
+bazel_dep(name = "gazelle", version = "0.54.0")
+
+# Bazel downloads and pins its own Go toolchain, so a build does not depend on
+# whichever Go happens to be installed on the machine running it. That is the
+# hermeticity claim, and CI below checks it by running on a runner with no Go.
+go_sdk = use_extension("@rules_go//go:extensions.bzl", "go_sdk")
+go_sdk.download(version = "1.27.1")

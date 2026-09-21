@@ -1,0 +1,12 @@
+common --enable_bzlmod
+test --test_output=errors
+
+# A shared HTTP cache. Locally it is bazel-remote in Docker; in CI it would be
+# whatever the team runs. Outputs are keyed by the hash of every input, so a
+# hit is only possible when nothing that affects the result has changed.
+build:remote --remote_cache=http://127.0.0.1:9092
+build:remote --remote_upload_local_results=true
+
+# Report cache behaviour on every build, which is where the measurements in
+# the README come from.
+build --execution_log_compact_file=/tmp/bazel_exec.log.zst

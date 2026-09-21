@@ -1,0 +1,17 @@
+cold       31.1s  139 processes: 47 internal, 92 darwin-sandbox.
+noop        0.4s  1 process: 3 action cache hit, 1 internal.
+fresh       5.4s  139 processes: 92 remote cache hit, 47 internal.
+--- tests affected by a change to lincheck ---
+//lincheck:lincheck_test
+comment     1.2s  5 processes: 11 action cache hit, 1 internal, 4 darwin-sandbox.
+  //lincheck:lincheck_test                                        (cached) PASSED in 0.5s
+  //raft:raft_test                                                (cached) PASSED in 0.4s
+  //sim:sim_test                                                  (cached) PASSED in 0.4s
+deadcode    1.0s  10 processes: 5 action cache hit, 1 internal, 9 darwin-sandbox.
+  //lincheck:lincheck_test                                        (cached) PASSED in 0.5s
+  //raft:raft_test                                                (cached) PASSED in 0.4s
+  //sim:sim_test                                                  (cached) PASSED in 0.4s
+live        0.9s  13 processes: 2 action cache hit, 3 remote cache hit, 3 internal, 7 darwin-sandbox.
+  //raft:raft_test                                                (cached) PASSED in 0.4s
+  //sim:sim_test                                                  (cached) PASSED in 0.4s
+  //lincheck:lincheck_test                                                 PASSED in 0.2s

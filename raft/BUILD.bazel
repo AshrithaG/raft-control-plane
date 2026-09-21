@@ -1,0 +1,14 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "raft",
+    srcs = ["raft.go"],
+    importpath = "github.com/AshrithaG/raft-control-plane/raft",
+    visibility = ["//visibility:public"],
+)
+
+go_test(
+    name = "raft_test",
+    srcs = ["raft_test.go"],
+    embed = [":raft"],
+)

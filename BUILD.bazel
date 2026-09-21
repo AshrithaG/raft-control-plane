@@ -1,0 +1,4 @@
+load("@gazelle//:def.bzl", "gazelle")
+
+# gazelle:prefix github.com/AshrithaG/raft-control-plane
+gazelle(name = "gazelle")

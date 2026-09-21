@@ -97,6 +97,36 @@ now branches on both readings. This is why `lincheck` has its own tests against
 six histories whose answers are known by hand: a checker nobody has checked is
 not a checker.
 
+## Built with Bazel
+
+The repository builds and tests with Bazel as well as `go test`, because the
+interesting properties of a build system only show up when you measure them.
+`tools/bench_build.sh` runs each case against a local
+[bazel-remote](https://github.com/buchgr/bazel-remote) cache in Docker; the
+numbers below are one run on a laptop.
+
+| case | wall time | what happened |
+|---|---|---|
+| cold: empty output base, empty cache | 31.1s | 92 actions executed in the sandbox |
+| no-op: nothing changed | 0.4s | 3 local action-cache hits |
+| fresh runner: empty output base, warm remote cache | 5.4s | all 92 actions served from the remote cache |
+| comment-only edit to `lincheck` | 1.2s | recompiled, identical archive, no test re-ran |
+| unused function added to `lincheck` | 1.0s | archive changed, linker dropped it, identical test binary, no test re-ran |
+| edit that reaches the binary | 0.9s | `lincheck_test` re-ran; `raft_test` and `sim_test` came from cache |
+
+Two things in that table are worth reading twice. A fresh CI runner pays 5.4s
+instead of 31.1s because every action is keyed by the hash of its inputs, so a
+hit is only possible when nothing that affects the result has changed. And the
+last three rows are early cutoff at two different levels: Bazel re-runs a test
+only when the test binary itself changes, not when a file it depends on is
+touched. `bazel query 'kind(".*_test", rdeps(//..., //lincheck:lincheck))'`
+names the tests a change to `lincheck` can affect before anything runs.
+
+The Go toolchain is pinned in `MODULE.bazel` and downloaded by Bazel, so the
+build does not depend on whatever Go is installed. The `bazel` CI job runs on a
+runner with no Go set up to check exactly that, and fails if Gazelle would
+change a BUILD file.
+
 ## What it does not do
 
 - No log compaction or snapshots, so a long run keeps the whole log in memory.

@@ -1,0 +1,16 @@
+load("@rules_go//go:def.bzl", "go_library", "go_test")
+
+go_library(
+    name = "lincheck",
+    srcs = ["lincheck.go"],
+    importpath = "github.com/AshrithaG/raft-control-plane/lincheck",
+    visibility = ["//visibility:public"],
+    deps = ["//kv"],
+)
+
+go_test(
+    name = "lincheck_test",
+    srcs = ["lincheck_test.go"],
+    embed = [":lincheck"],
+    deps = ["//kv"],
+)

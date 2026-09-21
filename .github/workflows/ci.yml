@@ -13,3 +13,18 @@ jobs:
       # The baseline must be clean and every deliberate defect must be caught.
       - run: go run ./cmd/simtest -seeds 10 -ticks 2000
       - run: go run ./cmd/simtest -mutations -seeds 40 -ticks 2500
+
+  bazel:
+    # No setup-go on purpose: if this job passes, the build did not depend on a
+    # Go installation on the runner, because Bazel fetched and pinned its own.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bazel-contrib/setup-bazel@0.14.0
+        with:
+          bazelisk-cache: true
+          repository-cache: true
+      - run: "! command -v go || echo 'note: runner has a go binary, the build does not use it'"
+      - run: bazel test //...
+      # Gazelle must have nothing to change, or BUILD files have drifted from the code.
+      - run: bazel run //:gazelle -- -mode=diff
