@@ -8,6 +8,7 @@ package main
 
 import (
 	"flag"
+	"strings"
 	"fmt"
 	"math/rand"
 	"os"
@@ -228,10 +229,11 @@ func main() {
 	seed := flag.Int64("seed", -1, "replay a single seed")
 	bug := flag.String("bug", "", "run with a deliberate defect: commit-any-term, no-up-to-date, blind-truncate, accept-stale-term")
 	mutations := flag.Bool("mutations", false, "check that every deliberate defect is caught")
+	skip := flag.String("skip", "", "comma-separated defects to leave out of -mutations")
 	flag.Parse()
 
 	if *mutations {
-		runMutations(*seeds, *nodes, *ticks, *clients, *maxOps)
+		runMutations(*seeds, *nodes, *ticks, *clients, *maxOps, *skip)
 		return
 	}
 
@@ -311,11 +313,22 @@ func splitLines(s string) []string {
 // runMutations reintroduces each known defect and reports the first seed and
 // profile that catches it. A defect nothing catches is a gap in the harness,
 // not a harmless bug, and is printed as such.
-func runMutations(seeds, nodes, ticks, clients, maxOps int) {
+func runMutations(seeds, nodes, ticks, clients, maxOps int, skip string) {
 	bugs := []raft.Bug{raft.BugCommitAnyTerm, raft.BugNoUpToDate, raft.BugBlindTruncate,
 		raft.BugAcceptStaleTerm, raft.BugStaleRead}
 	fmt.Printf("%-18s %-12s %6s  %s\n", "defect", "caught by", "seed", "how")
 	missed := 0
+	skipped := map[string]bool{}
+	for _, s := range strings.Split(skip, ",") {
+		skipped[strings.TrimSpace(s)] = true
+	}
+	var kept []raft.Bug
+	for _, b := range bugs {
+		if !skipped[string(b)] {
+			kept = append(kept, b)
+		}
+	}
+	bugs = kept
 	for _, b := range bugs {
 		found := false
 		for _, p := range profiles() {
